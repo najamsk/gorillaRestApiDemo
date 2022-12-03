@@ -30,6 +30,12 @@ func (h *RestHandler) MembersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RestHandler) NewMemberHandler(w http.ResponseWriter, r *http.Request) {
+	// swagger:route POST /member members createMember
+	// Return a newly created member
+	// responses:
+	//	200: memberResponse
+	//  501: errorResponse
+
 	var newMember data.Member
 	rb := json.NewDecoder(r.Body)
 	err := rb.Decode(&newMember)
@@ -39,9 +45,37 @@ func (h *RestHandler) NewMemberHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newMember = h.Repo.CreateMember(newMember)
+	log.Printf("created emmber: %#v \n", newMember)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newMember)
+}
+
+func (h *RestHandler) UpdateMemberHandler(w http.ResponseWriter, r *http.Request) {
+	// swagger:route PUT /member members updateMember
+	// Return a updated member
+	// responses:
+	//	200: memberResponse
+	//  400: errorResponse
+
+	var newMember data.Member
+	rb := json.NewDecoder(r.Body)
+	err := rb.Decode(&newMember)
+	if err != nil {
+		log.Println("cant parse incoming data for member")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	uMember, err := h.Repo.UpdateMember(newMember)
+	if err != nil {
+		log.Printf("update member failed with error:%#v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Printf("updated memeber: %#v \n", uMember)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(uMember)
 }
 
 func (h *RestHandler) NewTeamHandler(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +110,15 @@ func (h *RestHandler) TeamsHandler(w http.ResponseWriter, r *http.Request) {
 func (h *RestHandler) StringHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("string handler invoked")
 	w.Write([]byte("Gorilla!\n"))
+}
+
+func (h *RestHandler) Err501(w http.ResponseWriter, r *http.Request) {
+	// swagger:route GET /501 dev err501
+	// Return a not implemented error
+	// responses:
+	//	501: errorResponse
+	log.Println("Err501 handler invoked")
+	http.Error(w, "server failed", http.StatusNotImplemented)
 }
 
 func (h *RestHandler) JsonStringHandler(w http.ResponseWriter, r *http.Request) {

@@ -16,6 +16,74 @@
   },
   "basePath": "/",
   "paths": {
+    "/501": {
+      "get": {
+        "description": "Return a not implemented error",
+        "tags": [
+          "dev"
+        ],
+        "operationId": "err501",
+        "responses": {
+          "501": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      }
+    },
+    "/member": {
+      "put": {
+        "description": "Return a updated member",
+        "tags": [
+          "members"
+        ],
+        "operationId": "updateMember",
+        "parameters": [
+          {
+            "description": "Member data structure to  Create.",
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Member"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/memberResponse"
+          },
+          "400": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      },
+      "post": {
+        "description": "Return a newly created member",
+        "tags": [
+          "members"
+        ],
+        "operationId": "createMember",
+        "parameters": [
+          {
+            "description": "Member data structure to  Create.",
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Member"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/memberResponse"
+          },
+          "501": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      }
+    },
     "/members": {
       "get": {
         "description": "Return a list of memebers from the database",
@@ -46,6 +114,17 @@
     }
   },
   "definitions": {
+    "GenericError": {
+      "description": "GenericError is a generic error message returned by a server",
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "x-go-name": "Message"
+        }
+      },
+      "x-go-package": "gorilla/internal/data"
+    },
     "Member": {
       "description": "Member defines the structure for an API product",
       "type": "object",
@@ -92,6 +171,18 @@
     }
   },
   "responses": {
+    "errorResponse": {
+      "description": "Generic error message returned as a string",
+      "schema": {
+        "$ref": "#/definitions/GenericError"
+      }
+    },
+    "memberResponse": {
+      "description": "A member",
+      "schema": {
+        "$ref": "#/definitions/Member"
+      }
+    },
     "membersResponse": {
       "description": "A list of members",
       "schema": {

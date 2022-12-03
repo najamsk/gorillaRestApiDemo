@@ -2,6 +2,14 @@ package data
 
 import "fmt"
 
+type Error string
+
+func (e Error) Error() string {
+	return string(e)
+}
+
+const ErrNotFound = Error("Not found")
+
 type Repo struct {
 	// teams   []Team
 	// members []Member
@@ -72,12 +80,36 @@ func (r *Repo) CreateMember(m Member) Member {
 	r.db.Members = append(r.db.Members, m)
 	return m
 }
+
+func (r *Repo) UpdateMember(m Member) (*Member, error) {
+	mem, err := r.FindMember(m.Id)
+	if err != nil {
+		return nil, err
+	}
+	r.db.Members[mem] = m
+	return &m, nil
+}
+
+func (r *Repo) FindMember(x int) (int, error) {
+	for k, v := range r.db.Members {
+		if v.Id == x {
+			return k, nil
+		}
+	}
+	return -1, ErrNotFound
+}
+
 func (r *Repo) CreateTeam(t Team) Team {
 	r.db.Teams = append(r.db.Teams, t)
 	t.Id = len(r.db.Teams)
 	return t
 }
 
-func init() {
-	fmt.Println("setup data")
+// GenericError is a generic error message returned by a server
+type GenericError struct {
+	Message string `json:"message"`
 }
+
+// func init() {
+// 	fmt.Println("setup data")
+// }

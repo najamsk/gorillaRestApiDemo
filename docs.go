@@ -17,6 +17,14 @@ package main
 
 import "gorilla/internal/data"
 
+// Generic error message returned as a string
+// swagger:response errorResponse
+type errorResponseWrapper struct {
+	// Description of the error
+	// in: body
+	Body data.GenericError
+}
+
 // A list of teams
 // swagger:response teamsResponse
 type teamsResponseWrapper struct {
@@ -31,4 +39,20 @@ type membersResponseWrapper struct {
 	// All current members
 	// in: body
 	Body []data.Member
+}
+
+// A member
+// swagger:response memberResponse
+type memberResponseWrapper struct {
+	// Member Details
+	// in: body
+	Body data.Member
+}
+
+// swagger:parameters createMember updateMember
+type memberParamsWrapper struct {
+	// Member data structure to  Create.
+	// in: body
+	// required: true
+	Body data.Member
 }

@@ -23,6 +23,7 @@ func main() {
 	sf := http.HandlerFunc(restHandler.StringHandler)
 	r.HandleFunc("/", restHandler.LogHandler(sf)).Methods("GET")
 	r.HandleFunc("/member", restHandler.NewMemberHandler).Methods("POST")
+	r.HandleFunc("/member", restHandler.UpdateMemberHandler).Methods("PUT")
 	r.HandleFunc("/team", restHandler.NewTeamHandler).Methods("POST")
 	r.HandleFunc("/real", restHandler.SayNameMethod).Methods("GET")
 	r.HandleFunc("/teams", restHandler.TeamsHandler)
@@ -31,6 +32,7 @@ func main() {
 	r.HandleFunc("/stream", restHandler.StreamHandler)
 	r.HandleFunc("/jsonstring", restHandler.JsonStringHandler)
 	r.HandleFunc("/struct", restHandler.JsonStructHandler)
+	r.HandleFunc("/501", restHandler.Err501).Methods("GET")
 
 	// Bind to a port and pass our router in
 	log.Println("server started at :8000")

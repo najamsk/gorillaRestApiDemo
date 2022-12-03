@@ -90,6 +90,27 @@ func (r *Repo) UpdateMember(m Member) (*Member, error) {
 	return &m, nil
 }
 
+func (r *Repo) DeleteMember(m int) error {
+	k, err := r.FindMember(m)
+	if err != nil {
+		return err
+	}
+	//if k is first item
+	if k == 0 {
+		r.db.Members = r.db.Members[1:]
+
+	} else if k == len(r.db.Members)-1 {
+		r.db.Members = r.db.Members[:len(r.db.Members)]
+		//last item
+	} else {
+		left := r.db.Members[:k]
+		right := r.db.Members[k+1:]
+		final := append(left, right...)
+		r.db.Members = final
+	}
+	return nil
+}
+
 func (r *Repo) FindMember(x int) (int, error) {
 	for k, v := range r.db.Members {
 		if v.Id == x {

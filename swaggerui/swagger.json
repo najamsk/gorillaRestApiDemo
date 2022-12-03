@@ -39,7 +39,7 @@
         "operationId": "updateMember",
         "parameters": [
           {
-            "description": "Member data structure to  Create.",
+            "description": "Member data structure to Create or Update.",
             "name": "Body",
             "in": "body",
             "required": true,
@@ -65,7 +65,7 @@
         "operationId": "createMember",
         "parameters": [
           {
-            "description": "Member data structure to  Create.",
+            "description": "Member data structure to Create or Update.",
             "name": "Body",
             "in": "body",
             "required": true,
@@ -79,6 +79,33 @@
             "$ref": "#/responses/memberResponse"
           },
           "501": {
+            "$ref": "#/responses/errorResponse"
+          }
+        }
+      }
+    },
+    "/member/{memid}": {
+      "delete": {
+        "description": "Deletes a member",
+        "tags": [
+          "members"
+        ],
+        "operationId": "delMember",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of memeber",
+            "name": "memid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/noContentResponse"
+          },
+          "400": {
             "$ref": "#/responses/errorResponse"
           }
         }
@@ -191,6 +218,9 @@
           "$ref": "#/definitions/Member"
         }
       }
+    },
+    "noContentResponse": {
+      "description": "No content is returned by this API endpoint"
     },
     "teamsResponse": {
       "description": "A list of teams",

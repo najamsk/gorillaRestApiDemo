@@ -24,6 +24,7 @@ func main() {
 	r.HandleFunc("/", restHandler.LogHandler(sf)).Methods("GET")
 	r.HandleFunc("/member", restHandler.NewMemberHandler).Methods("POST")
 	r.HandleFunc("/member", restHandler.UpdateMemberHandler).Methods("PUT")
+	r.HandleFunc("/member/{memid}", restHandler.DeleteMemberHandler).Methods("DELETE")
 	r.HandleFunc("/team", restHandler.NewTeamHandler).Methods("POST")
 	r.HandleFunc("/real", restHandler.SayNameMethod).Methods("GET")
 	r.HandleFunc("/teams", restHandler.TeamsHandler)

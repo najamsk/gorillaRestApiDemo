@@ -25,6 +25,11 @@ type errorResponseWrapper struct {
 	Body data.GenericError
 }
 
+// No content is returned by this API endpoint
+// swagger:response noContentResponse
+type noContentResponseWrapper struct {
+}
+
 // A list of teams
 // swagger:response teamsResponse
 type teamsResponseWrapper struct {
@@ -51,8 +56,15 @@ type memberResponseWrapper struct {
 
 // swagger:parameters createMember updateMember
 type memberParamsWrapper struct {
-	// Member data structure to  Create.
+	// Member data structure to Create or Update.
 	// in: body
 	// required: true
 	Body data.Member
+}
+
+// swagger:parameters delMember
+type memberDeleteParamsWrapper struct {
+	// ID of memeber
+	// in: path
+	ID string `json:"memid"`
 }

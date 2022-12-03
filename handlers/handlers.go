@@ -6,7 +6,10 @@ import (
 	"gorilla/internal/data"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type RestHandler struct {
@@ -76,6 +79,35 @@ func (h *RestHandler) UpdateMemberHandler(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(uMember)
+}
+
+func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request) {
+	// swagger:route DELETE /member/{memid} members delMember
+	// Deletes a member
+	// responses:
+	//	200: noContentResponse
+	//  400: errorResponse
+
+	params := mux.Vars(r)
+	id := params["memid"]
+	mID, err := strconv.Atoi(id)
+	if err != nil {
+		// ... handle error
+		log.Printf("Can't parse the requested ID:%#v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.Repo.DeleteMember(mID)
+	if err != nil {
+		log.Printf("Deleting member failed with error:%#v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Printf("Deleted memeber: %#v \n", mID)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+	// json.NewEncoder(w).Encode(uMember)
 }
 
 func (h *RestHandler) NewTeamHandler(w http.ResponseWriter, r *http.Request) {

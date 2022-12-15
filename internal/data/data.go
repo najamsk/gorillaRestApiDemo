@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const name = "handlers"
+const name = "repository"
 
 type Error string
 

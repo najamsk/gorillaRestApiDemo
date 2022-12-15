@@ -5,7 +5,7 @@ http server listen on port 8000
 ## Todos
 
 - [x] Add GET,POST, PUT and DELETE end points and link with swagger
-- [ ] Embed SwaggerUi folder into output binary
+- [x] Embed SwaggerUi folder into output binary
 - [ ] OpenTelemetry
 - [ ] Unit tests for http endpoints
 - [ ] Structured Logging

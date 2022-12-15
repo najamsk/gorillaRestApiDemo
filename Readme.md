@@ -29,3 +29,4 @@ docker run -d --name jaeger \
   -p 9411:9411 \
   jaegertracing/all-in-one:1.39
   ```
+run jaeger ui by visiting http://localhost:16686

@@ -8,7 +8,7 @@ http server listen on port 8000
 - [x] Embed SwaggerUi folder into output binary
 - [x] OpenTelemetry
 - [ ] Unit tests for http endpoints
-- [ ] Structured Logging
+- [x] Structured Logging
 - [ ] Generate http client from swagger
 - [ ] Custom error package and struct
 
@@ -31,3 +31,9 @@ docker run -d --name jaeger \
   jaegertracing/all-in-one:1.39
   ```
 run jaeger ui by visiting http://localhost:16686
+
+Run jaeger container and then run our go server using:
+
+```
+go run 1.go
+```

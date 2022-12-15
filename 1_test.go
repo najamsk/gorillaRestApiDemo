@@ -27,6 +27,7 @@ func TestRootStringHandlerEndpoint(t *testing.T) {
 	//Act
 	restHandler.StringHandler(w, req)
 	resp := w.Result()
+	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	got := string(body)
 

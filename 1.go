@@ -3,11 +3,17 @@ package main
 import (
 	"gorilla/handlers"
 	"gorilla/internal/data"
+	"io/fs"
 	"log"
 	"net/http"
 
+	"embed"
+
 	"github.com/gorilla/mux"
 )
+
+//go:embed swaggerui
+var SwaggerDir embed.FS
 
 func main() {
 	//setup database
@@ -18,7 +24,13 @@ func main() {
 		Repo: repo,
 	}
 	// Routes consist of a path and a handler function.
-	fs := http.FileServer(http.Dir("./swaggerui/"))
+	// fs := http.FileServer(http.Dir("./swaggerui/"))
+
+	//embeding swaggerui folder and serving it as a fileserver
+	swagFS := fs.FS(SwaggerDir)
+	swaggerContent, _ := fs.Sub(swagFS, "swaggerui")
+	fs := http.FileServer(http.FS(swaggerContent))
+
 	r.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", fs))
 	sf := http.HandlerFunc(restHandler.StringHandler)
 	r.HandleFunc("/", restHandler.LogHandler(sf)).Methods("GET")

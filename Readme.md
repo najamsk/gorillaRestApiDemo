@@ -6,8 +6,9 @@ http server listen on port 8000
 
 - [x] Add GET,POST, PUT and DELETE end points and link with swagger
 - [ ] Embed SwaggerUi folder into output binary
-- [ ] OpenTracing
+- [ ] OpenTelemetry
 - [ ] Unit tests for http endpoints
+- [ ] Structured Logging
 
 
 ### Run Jaeger as docker container

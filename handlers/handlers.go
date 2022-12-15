@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"gorilla/internal/data"
@@ -10,14 +11,26 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+
+	"go.opentelemetry.io/otel"
 )
+
+const name = "handlers"
 
 type RestHandler struct {
 	Repo *data.Repo
+	Log  *log.Logger
+}
+
+func NewResHandler(r *data.Repo, l *log.Logger) *RestHandler {
+	return &RestHandler{
+		Repo: r,
+		Log:  l,
+	}
 }
 
 func (h *RestHandler) SayNameMethod(w http.ResponseWriter, r *http.Request) {
-	log.Println("SayNameReal invoked")
+	h.Log.Println("SayNameReal invoked")
 	w.Write([]byte("my name is real slim shady\n"))
 }
 
@@ -43,12 +56,12 @@ func (h *RestHandler) NewMemberHandler(w http.ResponseWriter, r *http.Request) {
 	rb := json.NewDecoder(r.Body)
 	err := rb.Decode(&newMember)
 	if err != nil {
-		log.Println("cant parse incoming data for member")
+		h.Log.Println("cant parse incoming data for member")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	newMember = h.Repo.CreateMember(newMember)
-	log.Printf("created emmber: %#v \n", newMember)
+	h.Log.Printf("created emmber: %#v \n", newMember)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newMember)
@@ -65,17 +78,17 @@ func (h *RestHandler) UpdateMemberHandler(w http.ResponseWriter, r *http.Request
 	rb := json.NewDecoder(r.Body)
 	err := rb.Decode(&newMember)
 	if err != nil {
-		log.Println("cant parse incoming data for member")
+		h.Log.Println("cant parse incoming data for member")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	uMember, err := h.Repo.UpdateMember(newMember)
 	if err != nil {
-		log.Printf("update member failed with error:%#v", err)
+		h.Log.Printf("update member failed with error:%#v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log.Printf("updated memeber: %#v \n", uMember)
+	h.Log.Printf("updated memeber: %#v \n", uMember)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(uMember)
@@ -93,18 +106,18 @@ func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request
 	mID, err := strconv.Atoi(id)
 	if err != nil {
 		// ... handle error
-		log.Printf("Can't parse the requested ID:%#v", err)
+		h.Log.Printf("Can't parse the requested ID:%#v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = h.Repo.DeleteMember(mID)
 	if err != nil {
-		log.Printf("Deleting member failed with error:%#v", err)
+		h.Log.Printf("Deleting member failed with error:%#v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log.Printf("Deleted memeber: %#v \n", mID)
+	h.Log.Printf("Deleted memeber: %#v \n", mID)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 	// json.NewEncoder(w).Encode(uMember)
@@ -115,7 +128,7 @@ func (h *RestHandler) NewTeamHandler(w http.ResponseWriter, r *http.Request) {
 	rb := json.NewDecoder(r.Body)
 	err := rb.Decode(&n)
 	if err != nil {
-		log.Println("cant parse incoming data for team")
+		h.Log.Println("cant parse incoming data for team")
 		// w.WriteHeader(http.StatusBadRequest)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -136,11 +149,14 @@ func (h *RestHandler) TeamsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(h.Repo.GetTeams())
+	ctx := context.Background()
+	newCtx, span := otel.Tracer(name).Start(ctx, "handlers/GetTeams")
+	json.NewEncoder(w).Encode(h.Repo.GetTeams(newCtx))
+	span.End()
 }
 
 func (h *RestHandler) StringHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("string handler invoked")
+	h.Log.Println("string handler invoked")
 	w.Write([]byte("Gorilla!\n"))
 }
 
@@ -149,7 +165,7 @@ func (h *RestHandler) Err501(w http.ResponseWriter, r *http.Request) {
 	// Return a not implemented error
 	// responses:
 	//	501: errorResponse
-	log.Println("Err501 handler invoked")
+	h.Log.Println("Err501 handler invoked")
 	http.Error(w, "server failed", http.StatusNotImplemented)
 }
 
@@ -176,7 +192,7 @@ func (h *RestHandler) JsonMapHandler(w http.ResponseWriter, r *http.Request) {
 	resp["topic"] = "user/request"
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
-		log.Fatalf("Error happened in JSON marshal. Err: %s", err)
+		h.Log.Fatalf("Error happened in JSON marshal. Err: %s", err)
 	}
 	w.Write(jsonResp)
 
@@ -184,17 +200,17 @@ func (h *RestHandler) JsonMapHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *RestHandler) LogHandler(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("logging middleware start")
+		h.Log.Println("logging middleware start")
 		next.ServeHTTP(w, r)
-		log.Println("logging middleware ends")
+		h.Log.Println("logging middleware ends")
 	})
 }
 
 func (h *RestHandler) StreamHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("string handler invoked")
+	h.Log.Println("string handler invoked")
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		log.Println("responseWriter is not really a flusher")
+		h.Log.Println("responseWriter is not really a flusher")
 		return
 	}
 	//this header had no effect

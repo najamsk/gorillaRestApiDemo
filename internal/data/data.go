@@ -1,6 +1,14 @@
 package data
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+)
+
+const name = "handlers"
 
 type Error string
 
@@ -65,7 +73,10 @@ type Team struct {
 	Leader *Member `json:"leader"`
 }
 
-func (r *Repo) GetTeams() []Team {
+func (r *Repo) GetTeams(ctx context.Context) []Team {
+	_, span := otel.Tracer(name).Start(ctx, "repo/GetTeams")
+	defer span.End()
+	span.SetAttributes(attribute.String("request.n", "getTeamsAttr"))
 	return r.db.Teams
 }
 

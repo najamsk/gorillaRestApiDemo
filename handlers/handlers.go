@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 )
 
 const name = "handlers"
@@ -40,9 +41,12 @@ func (h *RestHandler) MembersHandler(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//	200: membersResponse
 
+	ctx := context.Background()
+	newCtx, span := otel.Tracer(name).Start(ctx, "handlers/GetMembers")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(h.Repo.GetMembers())
+	json.NewEncoder(w).Encode(h.Repo.GetMembers(newCtx))
+	span.End()
 }
 
 func (h *RestHandler) NewMemberHandler(w http.ResponseWriter, r *http.Request) {
@@ -101,18 +105,26 @@ func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request
 	//	200: noContentResponse
 	//  400: errorResponse
 
+	ctx := context.Background()
+	newCtx, span := otel.Tracer(name).Start(ctx, "handlers/DeleteMember")
+	defer span.End()
+
 	params := mux.Vars(r)
 	id := params["memid"]
 	mID, err := strconv.Atoi(id)
 	if err != nil {
 		// ... handle error
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.Log.Printf("Can't parse the requested ID:%#v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = h.Repo.DeleteMember(mID)
+	err = h.Repo.DeleteMember(newCtx, mID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.Log.Printf("Deleting member failed with error:%#v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

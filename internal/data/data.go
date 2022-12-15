@@ -6,6 +6,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 const name = "handlers"
@@ -80,7 +81,10 @@ func (r *Repo) GetTeams(ctx context.Context) []Team {
 	return r.db.Teams
 }
 
-func (r *Repo) GetMembers() []Member {
+func (r *Repo) GetMembers(ctx context.Context) []Member {
+	_, span := otel.Tracer(name).Start(ctx, "repo/GetMembers")
+	defer span.End()
+	// span.SetAttributes(attribute.String("request.n", "getTeamsAttr"))
 	fmt.Println("data.members:", r.db.Members)
 	return r.db.Members
 }
@@ -101,9 +105,14 @@ func (r *Repo) UpdateMember(m Member) (*Member, error) {
 	return &m, nil
 }
 
-func (r *Repo) DeleteMember(m int) error {
+func (r *Repo) DeleteMember(ctx context.Context, m int) error {
+	_, span := otel.Tracer(name).Start(ctx, "repo/DeleteMember")
+	defer span.End()
+
 	k, err := r.FindMember(m)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 	//if k is first item

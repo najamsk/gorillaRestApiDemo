@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"gorilla/internal/data"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
@@ -20,10 +21,10 @@ const name = "handlers"
 
 type RestHandler struct {
 	Repo *data.Repo
-	Log  *log.Logger
+	Log  *zap.Logger
 }
 
-func NewResHandler(r *data.Repo, l *log.Logger) *RestHandler {
+func NewResHandler(r *data.Repo, l *zap.Logger) *RestHandler {
 	return &RestHandler{
 		Repo: r,
 		Log:  l,
@@ -31,7 +32,8 @@ func NewResHandler(r *data.Repo, l *log.Logger) *RestHandler {
 }
 
 func (h *RestHandler) SayNameMethod(w http.ResponseWriter, r *http.Request) {
-	h.Log.Println("SayNameReal invoked")
+	// h.Log.Println("SayNameReal invoked")
+	h.Log.Info("SayNameReal invoked")
 	w.Write([]byte("my name is real slim shady\n"))
 }
 
@@ -60,12 +62,17 @@ func (h *RestHandler) NewMemberHandler(w http.ResponseWriter, r *http.Request) {
 	rb := json.NewDecoder(r.Body)
 	err := rb.Decode(&newMember)
 	if err != nil {
-		h.Log.Println("cant parse incoming data for member")
+		h.Log.Info("cant parse incoming data for member")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	newMember = h.Repo.CreateMember(newMember)
-	h.Log.Printf("created emmber: %#v \n", newMember)
+	h.Log.Info("created emmber:",
+		zap.Int("id", newMember.Id),
+		zap.String("name", newMember.Name),
+		zap.String("email", newMember.Email),
+		zap.Int("teamid", newMember.TeamId),
+	)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newMember)
@@ -82,17 +89,24 @@ func (h *RestHandler) UpdateMemberHandler(w http.ResponseWriter, r *http.Request
 	rb := json.NewDecoder(r.Body)
 	err := rb.Decode(&newMember)
 	if err != nil {
-		h.Log.Println("cant parse incoming data for member")
+		h.Log.Info("cant parse incoming data for member")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	uMember, err := h.Repo.UpdateMember(newMember)
 	if err != nil {
-		h.Log.Printf("update member failed with error:%#v", err)
+		// h.Log.Info("update member failed with error:%#v", err)
+		h.Log.Error("update member failed", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	h.Log.Printf("updated memeber: %#v \n", uMember)
+	h.Log.Info("updated memeber: %#v \n",
+		zap.Int("id", uMember.Id),
+		zap.String("name", uMember.Name),
+		zap.String("email", uMember.Email),
+		zap.Int("teamid", uMember.TeamId),
+	)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(uMember)
@@ -116,7 +130,7 @@ func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request
 		// ... handle error
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		h.Log.Printf("Can't parse the requested ID:%#v", err)
+		h.Log.Error("Can't parse the requested ID:", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -125,11 +139,13 @@ func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		h.Log.Printf("Deleting member failed with error:%#v", err)
+		h.Log.Error("Deleting member failed with error:", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	h.Log.Printf("Deleted memeber: %#v \n", mID)
+	h.Log.Info("Deleted memeber: %#v \n",
+		zap.Int("id", mID),
+	)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 	// json.NewEncoder(w).Encode(uMember)
@@ -140,7 +156,7 @@ func (h *RestHandler) NewTeamHandler(w http.ResponseWriter, r *http.Request) {
 	rb := json.NewDecoder(r.Body)
 	err := rb.Decode(&n)
 	if err != nil {
-		h.Log.Println("cant parse incoming data for team")
+		h.Log.Info("cant parse incoming data for team")
 		// w.WriteHeader(http.StatusBadRequest)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -168,7 +184,7 @@ func (h *RestHandler) TeamsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RestHandler) StringHandler(w http.ResponseWriter, r *http.Request) {
-	h.Log.Println("string handler invoked")
+	h.Log.Info("string handler invoked")
 	w.Write([]byte("Gorilla!\n"))
 }
 
@@ -177,7 +193,7 @@ func (h *RestHandler) Err501(w http.ResponseWriter, r *http.Request) {
 	// Return a not implemented error
 	// responses:
 	//	501: errorResponse
-	h.Log.Println("Err501 handler invoked")
+	h.Log.Info("Err501 handler invoked")
 	http.Error(w, "server failed", http.StatusNotImplemented)
 }
 
@@ -191,8 +207,17 @@ type SomeStruct struct {
 	Email string
 }
 
+func (f *SomeStruct) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("name:", f.Name)
+	enc.AddString("email", f.Email)
+	return nil
+}
+
 func (h *RestHandler) JsonStructHandler(w http.ResponseWriter, r *http.Request) {
 	data := SomeStruct{Name: "najam", Email: "najamsk@gmail.com"}
+	// h.Log.Infow("struct to json handler invoked")
+	h.Log.Info("struct to json:", zap.Object("someStruct", &data))
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
@@ -204,7 +229,7 @@ func (h *RestHandler) JsonMapHandler(w http.ResponseWriter, r *http.Request) {
 	resp["topic"] = "user/request"
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
-		h.Log.Fatalf("Error happened in JSON marshal. Err: %s", err)
+		h.Log.Fatal("Error happened with json marshal", zap.Error(err))
 	}
 	w.Write(jsonResp)
 
@@ -212,17 +237,17 @@ func (h *RestHandler) JsonMapHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *RestHandler) LogHandler(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.Log.Println("logging middleware start")
+		h.Log.Info("logging middleware start")
 		next.ServeHTTP(w, r)
-		h.Log.Println("logging middleware ends")
+		h.Log.Info("logging middleware ends")
 	})
 }
 
 func (h *RestHandler) StreamHandler(w http.ResponseWriter, r *http.Request) {
-	h.Log.Println("string handler invoked")
+	h.Log.Info("string handler invoked")
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		h.Log.Println("responseWriter is not really a flusher")
+		h.Log.Info("responseWriter is not really a flusher")
 		return
 	}
 	//this header had no effect

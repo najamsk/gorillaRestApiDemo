@@ -7,6 +7,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	"go.uber.org/zap"
 )
 
 const name = "handlers"
@@ -22,7 +23,8 @@ const ErrNotFound = Error("Not found")
 type Repo struct {
 	// teams   []Team
 	// members []Member
-	db *DataStore
+	db  *DataStore
+	Log *zap.Logger
 }
 type DataStore struct {
 	Teams   []Team
@@ -44,7 +46,7 @@ func NewDataStore() *DataStore {
 	return &DataStore{Teams: teams, Members: members}
 }
 
-func NewRepo(db *DataStore) *Repo {
+func NewRepo(db *DataStore, log *zap.Logger) *Repo {
 	// teams := []Team{
 	// 	{1, "warwicks", nil},
 	// 	{2, "maveriks", nil},
@@ -56,7 +58,7 @@ func NewRepo(db *DataStore) *Repo {
 	// teams[0].Leader = &members[0]
 	// teams[1].Leader = &members[1]
 
-	return &Repo{db: db}
+	return &Repo{db: db, Log: log}
 }
 
 // Member defines the structure for an API product

@@ -10,6 +10,7 @@ http server listen on port 8000
 - [ ] Unit tests for http endpoints
 - [ ] Structured Logging
 - [ ] Generate http client from swagger
+- [ ] Custom error package and struct
 
 
 ### Run Jaeger as docker container

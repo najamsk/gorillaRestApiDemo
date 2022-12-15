@@ -8,12 +8,12 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"embed"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -83,8 +83,12 @@ func newExporter(w io.Writer) (trace.SpanExporter, error) {
 var SwaggerDir embed.FS
 
 func main() {
+	//zap logger
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
 	//setup logger
-	l := log.New(os.Stdout, "", 0)
+	// l := log.New(os.Stdout, "", 0)
 
 	tp, err := tracerProvider("http://localhost:14268/api/traces")
 	if err != nil {
@@ -133,12 +137,12 @@ func main() {
 
 	//setup database
 	db := data.NewDataStore()
-	repo := data.NewRepo(db)
+	repo := data.NewRepo(db, logger)
 	r := mux.NewRouter()
 	/* restHandler := &handlers.RestHandler{
 		Repo: repo,
 	} */
-	restHandler := handlers.NewResHandler(repo, l)
+	restHandler := handlers.NewResHandler(repo, logger)
 	// Routes consist of a path and a handler function.
 	// fs := http.FileServer(http.Dir("./swaggerui/"))
 
@@ -164,7 +168,10 @@ func main() {
 	r.HandleFunc("/501", restHandler.Err501).Methods("GET")
 
 	// Bind to a port and pass our router in
-	l.Println("server started at :8000")
-	l.Fatal(http.ListenAndServe(":8000", r))
+	logger.Info("server started at :8000")
+	err = http.ListenAndServe(":8000", r)
+	if err != nil {
+		logger.Fatal("listening to server failed:", zap.Error(err))
+	}
 
 }

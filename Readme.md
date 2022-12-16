@@ -7,9 +7,9 @@ http server listen on port 8000
 - [x] Add GET,POST, PUT and DELETE end points and link with swagger
 - [x] Embed SwaggerUi folder into output binary
 - [x] OpenTelemetry
-- [ ] Unit tests for http endpoints
+- [x] Unit tests for http endpoints
 - [x] Structured Logging
-- [ ] Generate http client from swagger
+- [x] Generate http client from swagger
 - [ ] Custom error package and struct
 
 

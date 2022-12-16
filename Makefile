@@ -45,7 +45,7 @@ swagger:
 	cp swagger.json swaggerui
 
 swaggerClient:
-	~/go/bin/swagger generate client -f swagger.json -A gorilla-api
+	cd gen && ~/go/bin/swagger generate client -f ../swagger.json -A gorilla-api
 
 
 swaggery:

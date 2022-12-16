@@ -37,3 +37,17 @@ Run jaeger container and then run our go server using:
 ```
 go run 1.go
 ```
+
+
+### Generating Swagger Go Client
+
+First we will generate swagger client for golang
+* on root level create directories gen/client
+* run make command make swaggerClient
+* once files generated without error run go mod tidy
+
+Now make sure our server is running 
+
+go run 1.go
+
+now cd into cmd/rest/client and run go run client.go

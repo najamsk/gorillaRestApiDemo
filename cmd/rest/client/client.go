@@ -1,9 +1,9 @@
 package main
 
 import (
-	"gorilla/client"
-	"gorilla/client/members"
-	"gorilla/client/teams"
+	"gorilla/gen/client"
+	"gorilla/gen/client/members"
+	"gorilla/gen/client/teams"
 
 	"go.uber.org/zap"
 )

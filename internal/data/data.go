@@ -8,6 +8,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const name = "repository"
@@ -151,6 +152,11 @@ func (r *Repo) CreateTeam(t Team) Team {
 // GenericError is a generic error message returned by a server
 type GenericError struct {
 	Message string `json:"message"`
+}
+
+func (f *GenericError) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("message", f.Message)
+	return nil
 }
 
 // func init() {

@@ -124,6 +124,7 @@ func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request
 	defer span.End()
 
 	params := mux.Vars(r)
+	w.Header().Set("Content-Type", "application/json")
 	id := params["memid"]
 	mID, err := strconv.Atoi(id)
 	if err != nil {
@@ -131,7 +132,9 @@ func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		h.Log.Error("Can't parse the requested ID:", zap.Error(err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, err.Error())
 		return
 	}
 
@@ -140,13 +143,17 @@ func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		h.Log.Error("Deleting member failed with error:", zap.Error(err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.WriteHeader(http.StatusBadRequest)
+		ge := data.GenericError{Message: err.Error()}
+		// fmt.Fprintln(w, ge)
+		json.NewEncoder(w).Encode(ge)
+		// http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	h.Log.Info("Deleted memeber: %#v \n",
 		zap.Int("id", mID),
 	)
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 	// json.NewEncoder(w).Encode(uMember)
 }
@@ -208,7 +215,7 @@ type SomeStruct struct {
 }
 
 func (f *SomeStruct) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	enc.AddString("name:", f.Name)
+	enc.AddString("name", f.Name)
 	enc.AddString("email", f.Email)
 	return nil
 }

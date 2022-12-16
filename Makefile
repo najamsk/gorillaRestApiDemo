@@ -44,6 +44,9 @@ swagger:
 	~/go/bin/swagger generate spec -o ./swagger.json --scan-models
 	cp swagger.json swaggerui
 
+swaggerClient:
+	cd gen && ~/go/bin/swagger generate client -f ../swagger.json -A gorilla-api
+
 
 swaggery:
 	swagger generate spec -o ./swagger.yaml --scan-models

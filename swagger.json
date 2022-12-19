@@ -142,59 +142,66 @@
   },
   "definitions": {
     "GenericError": {
-      "description": "GenericError is a generic error message returned by a server",
+      "description": "GenericError GenericError is a generic error message returned by a server",
       "type": "object",
       "properties": {
         "message": {
+          "description": "message",
           "type": "string",
           "x-go-name": "Message"
         }
       },
-      "x-go-package": "gorilla/internal/data"
+      "x-go-package": "gorilla/gen/models"
     },
     "Member": {
-      "description": "Member defines the structure for an API product",
+      "description": "Member Member defines the structure for an API product",
       "type": "object",
       "properties": {
         "email": {
+          "description": "email",
           "type": "string",
           "x-go-name": "Email"
         },
         "id": {
+          "description": "Id",
           "type": "integer",
           "format": "int64",
-          "x-go-name": "Id"
+          "x-go-name": "ID"
         },
         "name": {
+          "description": "name",
           "type": "string",
           "x-go-name": "Name"
         },
         "teamID": {
+          "description": "team Id",
           "type": "integer",
           "format": "int64",
-          "x-go-name": "TeamId"
+          "x-go-name": "TeamID"
         }
       },
-      "x-go-package": "gorilla/internal/data"
+      "x-go-package": "gorilla/models"
     },
     "Team": {
-      "description": "Team defines the structure for an API product",
+      "description": "Team Team defines the structure for an API product",
       "type": "object",
       "properties": {
         "id": {
+          "description": "Id",
           "type": "integer",
           "format": "int64",
-          "x-go-name": "Id"
+          "x-go-name": "ID"
         },
         "leader": {
           "$ref": "#/definitions/Member"
         },
         "name": {
+          "description": "name",
           "type": "string",
           "x-go-name": "Name"
         }
       },
-      "x-go-package": "gorilla/internal/data"
+      "x-go-package": "gorilla/models"
     }
   },
   "responses": {

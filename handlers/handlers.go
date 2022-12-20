@@ -151,7 +151,7 @@ func (h *RestHandler) DeleteMemberHandler(w http.ResponseWriter, r *http.Request
 		// http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	h.Log.Info("Deleted memeber: %#v \n",
+	h.Log.Info("Deleted memeber: \n",
 		zap.Int("id", mID),
 	)
 	w.WriteHeader(http.StatusNoContent)

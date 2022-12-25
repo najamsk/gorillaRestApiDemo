@@ -10,7 +10,13 @@ http server listen on port 8000
 - [x] Unit tests for http endpoints
 - [x] Structured Logging
 - [x] Generate http client from swagger
-- [ ] Custom error package and struct
+- [ ] Custom error package and struct that can log meaningful trace to zap.logger, currently a detailed jibberish hard read stack is inserted
+- [ ] Dockerize
+- [ ] Running in Kubernetes inside docker
+- [ ] Pushing to AWS?
+- [ ] Pushing to GCP?
+- [ ] Reading from ENV and map to Config? Viper
+- [ ] Reading from Etcd and map to Config? Viper
 
 
 ### Run Jaeger as docker container

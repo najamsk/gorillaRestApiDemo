@@ -24,6 +24,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 )
 
+// these constants for openTelemetry jaeger
 const (
 	service     = "gorilla-demo"
 	environment = "demo"
@@ -87,9 +88,6 @@ func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
-	//setup logger
-	// l := log.New(os.Stdout, "", 0)
-
 	tp, err := tracerProvider("http://localhost:14268/api/traces")
 	if err != nil {
 		log.Fatal(err)
@@ -112,39 +110,11 @@ func main() {
 		}
 	}(ctx)
 
-	// Write telemetry data to a file.
-	// f, err := os.Create("traces.txt")
-	// if err != nil {
-	// 	l.Fatal(err)
-	// }
-	// defer f.Close()
-
-	// exp, err := newExporter(f)
-	// if err != nil {
-	// 	l.Fatal(err)
-	// }
-
-	// tp := trace.NewTracerProvider(
-	// 	trace.WithBatcher(exp),
-	// 	trace.WithResource(newResource()),
-	// )
-	// defer func() {
-	// 	if err := tp.Shutdown(context.Background()); err != nil {
-	// 		l.Fatal(err)
-	// 	}
-	// }()
-	// otel.SetTracerProvider(tp)
-
 	//setup database
 	db := data.NewDataStore()
 	repo := data.NewRepo(db, logger)
 	r := mux.NewRouter()
-	/* restHandler := &handlers.RestHandler{
-		Repo: repo,
-	} */
 	restHandler := handlers.NewResHandler(repo, logger)
-	// Routes consist of a path and a handler function.
-	// fs := http.FileServer(http.Dir("./swaggerui/"))
 
 	//embeding swaggerui folder and serving it as a fileserver
 	swagFS := fs.FS(SwaggerDir)

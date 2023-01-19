@@ -132,6 +132,7 @@ func main() {
 	r.HandleFunc("/teams", restHandler.TeamsHandler)
 	r.HandleFunc("/members", restHandler.MembersHandler)
 	r.HandleFunc("/map", restHandler.JsonMapHandler)
+	r.HandleFunc("/{id}", handlers.MakeAPIFunc(restHandler.ResourceErrHandler))
 	r.HandleFunc("/stream", restHandler.StreamHandler)
 	r.HandleFunc("/jsonstring", restHandler.JsonStringHandler)
 	r.HandleFunc("/struct", restHandler.JsonStructHandler)

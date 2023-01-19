@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gorilla/internal/data"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -230,6 +231,35 @@ func (h *RestHandler) JsonStructHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(data)
 }
 
+func (h *RestHandler) ResourceErrHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+
+	params := mux.Vars(r)
+	w.Header().Set("Content-Type", "application/json")
+	id := params["id"]
+	if id == "0" {
+		return fmt.Errorf("invalid id %s", id)
+	}
+
+	h.Log.Info("resource id: \n",
+		zap.String("id", id),
+	)
+	resp := make(map[string]string)
+	resp["resource"] = "najam awan"
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		h.Log.Fatal("Error happened with json marshal", zap.Error(err))
+		return err
+	}
+
+	h.Log.Info("resource payload: \n",
+		zap.String("payload", string(jsonResp)),
+	)
+	// w.Write(jsonResp)
+	// return nil
+	return writeJSON(w, http.StatusOK, resp)
+
+}
+
 func (h *RestHandler) JsonMapHandler(w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]string)
 	resp["message"] = "Status Created"
@@ -271,4 +301,23 @@ func (h *RestHandler) StreamHandler(w http.ResponseWriter, r *http.Request) {
 		// time.Sleep(1 * time.Second)
 	}
 	fmt.Println("done")
+}
+
+type APIFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request) error
+
+func MakeAPIFunc(fn APIFunc) http.HandlerFunc {
+	ctx := context.Background()
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx = context.WithValue(ctx, "requestID", rand.Intn(100000000))
+
+		if err := fn(ctx, w, r); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
+		}
+	}
+}
+
+func writeJSON(w http.ResponseWriter, s int, v any) error {
+	w.WriteHeader(s)
+	return json.NewEncoder(w).Encode(v)
 }
